@@ -22,7 +22,8 @@ const requestLogger = (options?: Options): RequestHandler[] => {
     customLogLevel,
     customSuccessMessage,
     customReceivedMessage: (req) => `request received: ${req.method}`,
-    customErrorMessage: (_req, res) => `request errored with status code: ${res.statusCode}`,
+    customErrorMessage: (_req, res) =>
+      `request errored with status code: ${res.statusCode}`,
     customAttributeKeys,
     ...options,
   };
@@ -56,19 +57,29 @@ const responseBodyMiddleware: RequestHandler = (_req, res, next) => {
   next();
 };
 
-const customLogLevel = (_req: IncomingMessage, res: ServerResponse<IncomingMessage>, err?: Error): LevelWithSilent => {
+const customLogLevel = (
+  _req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>,
+  err?: Error
+): LevelWithSilent => {
   if (res.statusCode >= 400 && res.statusCode < 500) return 'warn';
   if (res.statusCode >= 500 || err) return 'error';
   if (res.statusCode >= 300 && res.statusCode < 400) return 'silent';
   return 'info';
 };
 
-const customSuccessMessage = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+const customSuccessMessage = (
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>
+) => {
   if (res.statusCode === 404) return 'resource not found';
   return `${req.method} completed`;
 };
 
-const genReqId = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+const genReqId = (
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>
+) => {
   const existingID = req.id ?? req.headers['x-request-id'];
   if (existingID) return existingID;
   const id = randomUUID();

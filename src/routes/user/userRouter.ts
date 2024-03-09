@@ -1,44 +1,59 @@
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-import express, { Request, Response, Router } from 'express';
 import { z } from 'zod';
 
-import { createApiResponse } from '@/api-docs/openAPIResponseBuilders';
-import { handleServiceResponse, validateRequest } from '@/common/utils/httpHandlers';
-import { GetUserSchema, UserSchema } from '@/routes/user/userModel';
-import { userService } from '@/routes/user/userService';
+import { AddRouteAndDocument } from '@/generator/AddRouteAndDocument';
 
-export const userRegistry = new OpenAPIRegistry();
+export const UserRoute = new AddRouteAndDocument({
+  baseRoute: '/user',
+  baseSchema: z.object({ name: z.string() }),
+  name: 'User',
+});
 
-userRegistry.register('User', UserSchema);
+UserRoute.get({
+  responseSchema: z.object({ name: z.string() }),
+  requestSchema: {
+    params: z.object({
+      nameParam: z.string().optional(),
+    }),
+  },
+  handler: async ({ params }) => {
+    // typed single source of truth, ts gives params types
+    params.nameParam;
+    return {
+      // ts gives response schema
+      responseObject: {
+        name: 'hellos 2',
+      },
+      message: 'Nice',
 
-export const userRouter: Router = (() => {
-  const router = express.Router();
+      statusCode: 200,
+      success: true,
+    };
+  },
+});
 
-  userRegistry.registerPath({
-    method: 'get',
-    path: '/users',
-    tags: ['User'],
-    responses: createApiResponse(z.array(UserSchema), 'Success'),
-  });
+UserRoute.get({
+  responseSchema: z.object({ name: z.string() }),
+  path: '/poo',
+  requestSchema: {
+    params: z.object({
+      nameParam: z.string(),
+    }),
+    headers: z.object({
+      Authorization: z.string().openapi({ example: 'Bearer ...' }),
+    }),
+  },
+  handler: async ({ params }) => {
+    // typed single source of truth, ts gives params types
+    params.nameParam;
+    return {
+      // ts gives response schema
+      responseObject: {
+        name: 'hellos',
+      },
+      message: 'Nice',
 
-  router.get('/', async (_req: Request, res: Response) => {
-    const serviceResponse = await userService.findAll();
-    handleServiceResponse(serviceResponse, res);
-  });
-
-  userRegistry.registerPath({
-    method: 'get',
-    path: '/users/{id}',
-    tags: ['User'],
-    request: { params: GetUserSchema.shape.params },
-    responses: createApiResponse(UserSchema, 'Success'),
-  });
-
-  router.get('/:id', validateRequest(GetUserSchema), async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id as string, 10);
-    const serviceResponse = await userService.findById(id);
-    handleServiceResponse(serviceResponse, res);
-  });
-
-  return router;
-})();
+      statusCode: 200,
+      success: true,
+    };
+  },
+});
