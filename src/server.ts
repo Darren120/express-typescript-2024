@@ -6,6 +6,8 @@ import { pino } from 'pino';
 import errorHandler from '@/common/middleware/errorHandler';
 // import rateLimiter from '@/common/middleware/rateLimiter';
 import requestLogger from '@/common/middleware/requestLogger';
+// @ts-expect-error
+import * as bodyParser from 'body-parser';
 import { env } from '@/common/utils/envConfig';
 import { healthCheckRouter } from '@/routes/healthCheck/healthCheckRouter';
 
@@ -21,6 +23,7 @@ app.set('trust proxy', true);
 // Middlewares
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
+app.use(bodyParser.json());
 // app.use(rateLimiter);
 
 // Request logging
