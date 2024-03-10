@@ -12,7 +12,7 @@ UserRoute.get({
   responseSchema: z.object({ name: z.string() }),
   requestSchema: {
     params: z.object({
-      nameParam: z.string().optional(),
+      nameParam: z.string(),
     }),
   },
   handler: async ({ params }) => {
@@ -21,7 +21,7 @@ UserRoute.get({
     return {
       // ts gives response schema
       responseObject: {
-        name: 'hellos 2',
+        name: '',
       },
       message: 'Nice',
 

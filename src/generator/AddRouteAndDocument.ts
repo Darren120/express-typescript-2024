@@ -8,7 +8,10 @@ import { z } from 'zod';
 
 import { createApiResponse } from '@/api-docs/openAPIResponseBuilders';
 import { ServiceResponse } from '@/common/models/serviceResponse';
-import { handleServiceResponse } from '@/common/utils/httpHandlers';
+import {
+  handleServiceResponse,
+  validateSchema,
+} from '@/common/utils/httpHandlers';
 extendZodWithOpenApi(z);
 export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
   private name: string;
@@ -69,7 +72,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
   }) {
     const { params } = requestSchema;
     const paramKeys = Object.keys(params?.shape || {});
-    // also check dup params and throw
+
     const parseParams = paramKeys
       ? paramKeys.length === 1
         ? paramKeys[0]
@@ -101,8 +104,17 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     this.router.get(
       pathParsed.slice(this.baseRoute.length),
       async (_req: Request, res: Response) => {
-        console.log(_req.params);
-        // const serviceResponse = await userService.findAll();
+        Object.keys(requestSchema).forEach((key) => {
+          const schema = requestSchema[key as keyof typeof requestSchema];
+          if (schema) {
+            const valid = validateSchema({
+              schema: schema as any,
+              object: _req[key as keyof typeof _req],
+            });
+            if (!valid) return handleServiceResponse(valid, res);
+          }
+        });
+
         const response = await handler({
           params: _req.params as ParamsSchema['_type'],
           request: _req,

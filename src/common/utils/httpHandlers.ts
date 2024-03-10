@@ -34,3 +34,24 @@ export const validateRequest =
         );
     }
   };
+export const validateSchema = ({
+  schema,
+  object,
+}: {
+  schema: ZodSchema;
+  object: Record<string, any>;
+}) => {
+  try {
+    schema.parse(object);
+    return true;
+  } catch (err) {
+    const errorMessage = `Invalid input: ${(err as ZodError).errors.map((e) => e.message).join(', ')}`;
+    const statusCode = StatusCodes.BAD_REQUEST;
+    return new ServiceResponse<null>(
+      ResponseStatus.Failed,
+      errorMessage,
+      null,
+      statusCode
+    );
+  }
+};
