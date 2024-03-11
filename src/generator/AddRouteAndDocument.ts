@@ -1,4 +1,7 @@
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
+import {
+  OpenAPIRegistry,
+  ZodRequestBody,
+} from '@asteasolutions/zod-to-openapi';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import express, { NextFunction, Request, Response } from 'express';
 import { ZodFirstPartyTypeKind, z } from 'zod';
@@ -51,7 +54,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
       QuerySchema extends ZodStringNumBoolOptional,
       HeadersSchema extends z.AnyZodObject,
       CookiesSchema extends z.AnyZodObject,
-      BodySchema extends z.AnyZodObject,
+      BodySchema extends ZodRequestBody,
       ResponseSchema extends z.AnyZodObject,
     >({
       cookies,
@@ -157,13 +160,19 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
           }
         }
       }
-      if (body) {
-        const valid = body.safeParse(requestBody);
-        console.log('valid', valid, _req.body);
+      if (
+        body &&
+        'application/json' in body.content &&
+        body.content['application/json']?.schema
+      ) {
+        const schema = body.content['application/json']
+          ?.schema as z.ZodObject<any>;
+        const valid = schema?.safeParse?.(requestBody);
+
         if (!valid.success) {
           return handleServiceResponse(
             {
-              message: `Invalid body: ${valid.error.errors.map((e) => e.message).join(', ')}`,
+              message: `Invalid body: ${valid.error.errors.map((e) => `${e.message} for: ${e.path}.`).join(', ')}`,
               responseObject: null,
               statusCode: 400,
               success: false,
@@ -180,7 +189,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     QuerySchema extends ZodStringNumBoolOptional,
     HeadersSchema extends z.AnyZodObject,
     CookiesSchema extends z.AnyZodObject,
-    BodySchema extends z.AnyZodObject,
+    BodySchema extends ZodRequestBody,
     ResponseSchema extends z.AnyZodObject,
   >({
     method,
@@ -206,15 +215,15 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
       tags: [this.name],
       request: {
         ...restOfSchema,
-        body: requestSchema?.body?.shape
-          ? {
-              content: {
-                'application/json': {
-                  schema: requestSchema.body,
-                },
-              },
-            }
-          : undefined,
+        // body: requestSchema?.body?.shape
+        //   ? {
+        //       content: {
+        //         'application/json': {
+        //           schema: requestSchema.body,
+        //         },
+        //       },
+        //     }
+        //   : undefined,
         params: paramKeys?.reduce((curr, next) => {
           return z.object({
             ...curr.shape,
@@ -325,7 +334,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     QuerySchema extends ZodStringNumBoolOptional,
     HeadersSchema extends z.AnyZodObject,
     CookiesSchema extends z.AnyZodObject,
-    BodySchema extends z.AnyZodObject,
+    BodySchema extends ZodRequestBody,
     ResponseSchema extends z.AnyZodObject,
   >({
     requestSchema,
@@ -348,8 +357,10 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     }: {
       request: Omit<Request, 'params' | 'query' | 'body'> & {
         params: Expand<{ [x in ParamsSchema]: string }>;
+        files: File[];
         query: QuerySchema['_type'];
-        body: BodySchema['_type'];
+        //@ts-expect-error
+        body: BodySchema['content']['application/json']['schema']['_type'];
       };
       response: Response;
     }) => Promise<ServiceResponse<ResponseSchema['_type']>>;

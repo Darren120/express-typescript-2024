@@ -84,15 +84,20 @@ UserRoute.post({
       num: z.number().openapi({ example: 10 }),
       bool: z.boolean().optional().openapi({ example: true }),
     }),
-    body: z.object({
-      name: z.string().openapi({ example: 'hello' }),
-      age: z.number().openapi({ example: 10 }),
-      isCool: z.boolean().optional().openapi({ example: true }),
-    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            name: z.string().openapi({ example: 'hello' }),
+            age: z.number().openapi({ example: 10 }),
+            isCool: z.boolean().optional().openapi({ example: true }),
+          }),
+        },
+      },
+    },
   },
-  handler: async ({ request: { params, query, body } }) => {
+  handler: async ({ request: { params, query, body, files } }) => {
     // typed single source of truth, ts gives params types
-    console.log('params', params);
     console.log('body', body.age, typeof body.age);
     console.log(
       'Q',

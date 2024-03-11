@@ -6,8 +6,8 @@ import { pino } from 'pino';
 import errorHandler from '@/common/middleware/errorHandler';
 // import rateLimiter from '@/common/middleware/rateLimiter';
 import requestLogger from '@/common/middleware/requestLogger';
-// @ts-expect-error
-import * as bodyParser from 'body-parser';
+
+var multer = require('multer');
 import { env } from '@/common/utils/envConfig';
 import { healthCheckRouter } from '@/routes/healthCheck/healthCheckRouter';
 
@@ -19,11 +19,13 @@ export const app: Express = express();
 
 // Set the application to trust the reverse proxy
 app.set('trust proxy', true);
+var upload = multer();
 
 // Middlewares
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(upload.array('files'));
 // app.use(rateLimiter);
 
 // Request logging
