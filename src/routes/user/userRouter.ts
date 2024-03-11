@@ -74,9 +74,11 @@ UserRoute.get({
     };
   },
 });
-
+type User = {
+  name: string;
+};
 UserRoute.post({
-  responseSchema: z.object({ name: z.string() }),
+  responseSchema: z.custom<User[]>(),
   requestSchema: {
     params: ['hello'],
     query: z.object({
@@ -109,10 +111,7 @@ UserRoute.post({
       typeof query.bool
     );
     return {
-      // ts gives response schema
-      responseObject: {
-        name: 'w',
-      },
+      responseObject: [],
       message: 'Nice',
 
       statusCode: 200,

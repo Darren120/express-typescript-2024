@@ -190,7 +190,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     HeadersSchema extends z.AnyZodObject,
     CookiesSchema extends z.AnyZodObject,
     BodySchema extends ZodRequestBody,
-    ResponseSchema extends z.AnyZodObject,
+    ResponseSchema extends z.ZodTypeAny,
   >({
     method,
     requestSchema,
@@ -266,7 +266,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     QuerySchema extends ZodStringNumBoolOptional,
     HeadersSchema extends z.AnyZodObject,
     CookiesSchema extends z.AnyZodObject,
-    ResponseSchema extends z.AnyZodObject,
+    ResponseSchema extends z.ZodTypeAny,
   >({
     requestSchema,
     responseSchema,
@@ -335,7 +335,7 @@ export class AddRouteAndDocument<BaseSchema extends z.AnyZodObject> {
     HeadersSchema extends z.AnyZodObject,
     CookiesSchema extends z.AnyZodObject,
     BodySchema extends ZodRequestBody,
-    ResponseSchema extends z.AnyZodObject,
+    ResponseSchema extends z.ZodTypeAny,
   >({
     requestSchema,
     responseSchema,
